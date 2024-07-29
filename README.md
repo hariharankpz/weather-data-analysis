@@ -30,13 +30,10 @@ We are not using **any crawler or glue catalog table**s here. Directly
 fetching the data from hive like partition on daily bases as csv file
 and applying transformation and loading it to s3.
 
-Tips:
-
-For incremental load or fetch only the new records, enable job bookmark
+Tips:For incremental load or fetch only the new records, enable job bookmark
 in glue job.
 
 **Low level design:**
-
 Airflow will have two dags where dagB is dependent on dagA. DagA will
 fetch the data from source through API call and convert the json data
 and write that as csv file in s3.
