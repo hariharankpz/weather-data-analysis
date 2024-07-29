@@ -1,20 +1,14 @@
-**[Title : Process & Ingest Open Weather Map Data In DWH]
+**Title : Process & Ingest Open Weather Map Data In DWH**
 
-[Tech Stack:]
+Tech Stack:
+1. Open Weather Map Data (API Source)
+2. S3
+3. Airflow
+4. Glue
+5.Redshift
+6.CICD with AWS CodeBuild]
 
-[1.) Open Weather Map Data (API Source)]
-
-[2.) S3]
-
-[3.) Airflow]
-
-[4.) Glue]
-
-[5.) Redshift]
-
-[6.) CICD with AWS CodeBuild]
-
-[Process type: Batch]
+Process type: Batch
 
 **Objective:**
 
