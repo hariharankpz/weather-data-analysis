@@ -1,30 +1,28 @@
-**Title : Process & Ingest Open Weather Map Data In DWH**
+# Process & Ingest Open Weather Map Data In DWH
 
-Tech Stack:
+## Tech Stack
+
 1. Open Weather Map Data (API Source)
 2. S3
 3. Airflow
 4. Glue
-5.Redshift
-6.CICD with AWS CodeBuild]
+5. Redshift
+6. CI/CD with AWS CodeBuild
 
-Process type: Batch
+## Process Type
 
-**Objective:**
+Batch
 
-We will be using an open API for fetching the weather data of different
-cities and different countries across the globe from an API endpoint
-which is hosted in any system like [Open Weather Map Data
-([[https://openweathermap.org/]{.underline}](https://openweathermap.org/))
-or]{.mark} VEEVA vault. We can make use of parameters (city, country)
-here to call or hit the API and fetch the data through python script.
+## Objective
 
-The data that we are pulling will dump into the S3 bucket. Then the glue
-job will read data from S3 and after that dump data to redshift.
+We will be using an open API to fetch weather data for various cities and countries across the globe. This data will be sourced from an API endpoint hosted on systems like [Open Weather Map Data](https://openweathermap.org/) or VEEVA Vault. By utilizing parameters such as city and country, we will call the API and fetch the data through a Python script.
 
-**Architecture diagram**
+The retrieved data will be dumped into an S3 bucket. Then, a Glue job will read the data from S3 and subsequently load it into Redshift.
 
-![](images/image11.png){width="6.5in" height="3.0555555555555554in"}
+## Architecture Diagram
+
+![Architecture Diagram](images/image11.png)
+
 
 We are not using **any crawler or glue catalog table**s here. Directly
 fetching the data from hive like partition on daily bases as csv file
