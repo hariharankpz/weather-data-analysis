@@ -1,20 +1,20 @@
-**[Title : Process & Ingest Open Weather Map Data In DWH]{.mark}**
+**[Title : Process & Ingest Open Weather Map Data In DWH]
 
-[Tech Stack:]{.mark}
+[Tech Stack:]
 
-[1.) Open Weather Map Data (API Source)]{.mark}
+[1.) Open Weather Map Data (API Source)]
 
-[2.) S3]{.mark}
+[2.) S3]
 
-[3.) Airflow]{.mark}
+[3.) Airflow]
 
-[4.) Glue]{.mark}
+[4.) Glue]
 
-[5.) Redshift]{.mark}
+[5.) Redshift]
 
-[6.) CICD with AWS CodeBuild]{.mark}
+[6.) CICD with AWS CodeBuild]
 
-[Process type: Batch]{.mark}
+[Process type: Batch]
 
 **Objective:**
 
