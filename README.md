@@ -23,154 +23,114 @@ The retrieved data will be dumped into an S3 bucket. Then, a Glue job will read 
 
 ![Architecture Diagram](images/image11.png)
 
+We are not using **any crawler or Glue catalog tables** here. We are directly fetching the data from hive-like partition on a daily basis as a CSV file, applying transformation, and loading it to S3.
 
-We are not using **any crawler or glue catalog table**s here. Directly
-fetching the data from hive like partition on daily bases as csv file
-and applying transformation and loading it to s3.
+Tips: For incremental load or fetching only the new records, enable job bookmarks in the Glue job.
 
-Tips:For incremental load or fetch only the new records, enable job bookmark
-in glue job.
+## Low-Level Design
 
-**Low level design:**
-Airflow will have two dags where dagB is dependent on dagA. DagA will
-fetch the data from source through API call and convert the json data
-and write that as csv file in s3.
+Airflow will have two DAGs where dagB is dependent on dagA. DagA will fetch the data from the source through an API call, convert the JSON data, and write that as a CSV file in S3.
 
-Once DagA completes, DagB will create a Glue job and run the glue job.
-The glue job will read, transform and ingest the data into redshift.
+Once DagA completes, DagB will create a Glue job and run the Glue job. The Glue job will read, transform, and ingest the data into Redshift.
 
-![](images/image9.png){width="5.625in" height="3.588542213473316in"}
+![Low-Level Design](images/image9.png)
 
-**Why do we have two different DAGS?**
+### Why do we have two different DAGs?
 
-Let\'s say if writing or dumping data to the redshift table and for some
-reason that operation fails, does it mean fetching data from API
-endpoint is also failed?
+Let's say if writing or dumping data to the Redshift table fails for some reason, does it mean fetching data from the API endpoint also fails?
 
-So we will separate these two operations in two separate dags and will
-monitor or debug separately and execute only the failed DAG.Moving
-forward any kind of backfilling or any ad-hoc run we want to perform, it
-is better to separate these two.
+So we will separate these two operations into two separate DAGs and will monitor or debug separately and execute only the failed DAG. Moving forward, any kind of backfilling or any ad-hoc run we want to perform, it is better to separate these two.
 
-**CICD workflow:**
+## CICD Workflow
 
-Airflow dag code and glue script will get stored in S3 and this will be
-used to create DAG and glue job respectively.
+Airflow DAG code and Glue script will get stored in S3, and this will be used to create DAG and Glue job respectively.
 
-![](images/image4.png){width="6.5in" height="5.458333333333333in"}
+![CICD Workflow](images/image4.png)
 
-We have one main branch in Github. We will cut a new branch named dev
-from main and will commit all our local code to dev. From dev we will
-raise PR to merge the changes to the main branch,Once merged to main,
-code build pipeline will get triggered and deploy the changes in the AWS
-environment and our application will be ready to run.
+We have one main branch in GitHub. We will cut a new branch named `dev` from `main` and commit all our local code to `dev`. From `dev`, we will raise a PR to merge the changes to the `main` branch. Once merged to `main`, the code build pipeline will get triggered, and deploy the changes in the AWS environment, and our application will be ready to run.
 
-Note: When we create glue via console, scripts and other details will
-get stored in the s3 folder automatically after creating the s3 folder
-automatically.
+Note: When we create Glue via console, scripts and other details will get stored in the S3 folder automatically after creating the S3 folder automatically.
 
-![](images/image16.png){width="6.5in" height="3.2916666666666665in"}
+![S3 Folder Structure](images/image16.png)
 
-Temporary folder, script folder and sparkHistory logs folder are created
-automatically.
+Temporary folder, script folder, and sparkHistory logs folder are created automatically.
 
-Here in our project, we will create an S3 folder and store the glue
-scripts there and make use of those scripts to create the glue job
-through the CICD pipeline. Similarly for airflow DAG as well.
+Here in our project, we will create an S3 folder and store the Glue scripts there and make use of those scripts to create the Glue job through the CICD pipeline. Similarly for Airflow DAG as well.
 
-**Let\'s get started with the implementation.**
+## Let's Get Started with the Implementation
 
-**Step 1: API source account creation.**
+### Step 1: API Source Account Creation
 
-Create an account in
-[[https://openweathermap.org/]{.underline}](https://openweathermap.org/)
-and get an API key. And at a later stage,since it is a very sensitive
-data we will be storing this in the airflow variable. It is using this
-API key in the API scripts that we will be fetching the data from this
-API source.
+Create an account in [Open Weather Map](https://openweathermap.org/) and get an API key. At a later stage, since it is very sensitive data, we will be storing this in the Airflow variable. It is using this API key in the API scripts that we will be fetching the data from this API source.
 
 This is how the response from the API endpoint looks like.
 
-![](images/image5.png){width="4.239583333333333in"
-height="3.5416666666666665in"}
+![API Response](images/image5.png)
 
-**Step 2:** Create a redshift connection Glue console for connecting to
-the redshift.
+### Step 2: Create a Redshift Connection in Glue Console
 
-**Step 3:** Configure and make necessary changes in the glue script and
-airflow dag script that is provided.
+Create a Redshift connection in the Glue console for connecting to Redshift.
 
-**We haven\'t yet created any table in redshift or glue job in Aws. All
-this will be done dynamically using the scripts itself.**
+### Step 3: Configure and Make Necessary Changes
 
-Code from the Glue job script weather_data_ingestion.py file that is
-creating the redshift table.
+Configure and make necessary changes in the Glue script and Airflow DAG script provided.
 
-![](images/image2.png){width="6.5in" height="2.5833333333333335in"}
+We haven't yet created any table in Redshift or Glue job in AWS. All this will be done dynamically using the scripts itself.
 
-Code from the airflow DAG script in transform_redshift_load.py file that
-is creating the glue job and this glue job will contain the code from
-the above image or file name weather_data_ingestion.py. You can see in
-the below image we are mentioning the above code path in the script
-location while creating the glue job through airflow dag code.
-![](images/image10.png){width="6.5in" height="3.2222222222222223in"}
+Code from the Glue job script `weather_data_ingestion.py` file that is creating the Redshift table.
 
-**Step 4:** Build a codebuild to perform CICD
+![Glue Script](images/image2.png)
 
-![](images/image3.png){width="6.5in" height="2.8333333333333335in"}
+Code from the Airflow DAG script in `transform_redshift_load.py` file that is creating the Glue job. This Glue job will contain the code from the above image or file named `weather_data_ingestion.py`. You can see in the below image we are mentioning the above code path in the script location while creating the Glue job through Airflow DAG code.
 
-**Step 5**: Commit all files to github and raise a PR to main from dev,
-so that our codebuild will get started and run the buildspec.yaml file
-and copy the DAG and glue scripts to corresponding S3 locations.
+![Airflow DAG Script](images/image10.png)
 
-Once we merged the PR build was getting started.
+### Step 4: Build a CodeBuild to Perform CICD
 
-![](images/image12.png){width="6.5in" height="2.4583333333333335in"}
+![CodeBuild](images/image3.png)
 
-**Step 6 :** Create Airflow environment
+### Step 5: Commit All Files to GitHub
 
-Follow the steps in this video to set up Amazon Managed Workflows for
-Apache Airflow.\
-\
-Don\'t forget to add the requirement.txt file s3 path that we copied
-using buildspec.yaml while setting up the airflow.
+Commit all files to GitHub and raise a PR to `main` from `dev`, so that our codebuild will get started and run the `buildspec.yaml` file and copy the DAG and Glue scripts to corresponding S3 locations.
 
-![](images/image1.png){width="6.5in" height="3.7916666666666665in"}
+Once we merge the PR, the build gets started.
 
-Enable the public network and configure the security group,VPC and
-subnets accordingly.
+![Build Started](images/image12.png)
 
-The path that you are mentioning for DAGS should be the same as the one
-you are using in buildspec.yaml file, where you are copying the DAG
-script.
+### Step 6: Create Airflow Environment
 
-![](images/image8.png){width="6.5in" height="2.7443186789151355in"}
+Follow the steps in this video to set up Amazon Managed Workflows for Apache Airflow.
 
-Airflow DAGS get created
+Don't forget to add the `requirements.txt` file S3 path that we copied using `buildspec.yaml` while setting up the Airflow.
 
-![](images/image7.png){width="6.5in" height="2.875in"}
+![Airflow Setup](images/image1.png)
 
-Now configure the API security key and AWS default conn that we are
-using in the scripts of getting connected to API endpoint and AWS
-respectively.
+Enable the public network and configure the security group, VPC, and subnets accordingly.
 
-Now enable the DAG. We have scheduled the DAG to run at midnight 12 AM
-(schedule_interval=\"@once\").For now we can manually trigger the DAG.
+The path that you are mentioning for DAGS should be the same as the one you are using in the `buildspec.yaml` file, where you are copying the DAG script.
 
-The First DAG ran successfully, it fetched the data from source,
-uploaded the data to S3 in csv format and triggered the next dependent
-DAG.
+![DAG Path](images/image8.png)
 
-![](images/image15.png){width="6.5in" height="3.4444444444444446in"}
+Airflow DAGS get created.
 
-Now our second DAG also gets triggered and the transform task(Create and
-execute glue job) is running now.![](images/image13.png){width="6.5in"
-height="3.625in"}
+![Airflow DAGS](images/image7.png)
 
-A new glue job (glue_transfrom_task) is created and it is running.
+Now configure the API security key and AWS default connection that we are using in the scripts for getting connected to API endpoint and AWS respectively.
 
-![](images/image14.png){width="6.5in" height="3.1666666666666665in"}
+Now enable the DAG. We have scheduled the DAG to run at midnight 12 AM (`schedule_interval="@once"`). For now, we can manually trigger the DAG.
 
-Finally data is loaded into the redshift table as we wanted.
+The first DAG ran successfully, it fetched the data from the source, uploaded the data to S3 in CSV format, and triggered the next dependent DAG.
 
-![](images/image6.png){width="6.5in" height="3.388888888888889in"}
+![DAG Run](images/image15.png)
+
+Now our second DAG also gets triggered and the transform task (Create and execute Glue job) is running now.
+
+![Transform Task](images/image13.png)
+
+A new Glue job (`glue_transform_task`) is created and it is running.
+
+![Glue Job Running](images/image14.png)
+
+Finally, data is loaded into the Redshift table as we wanted.
+
+![Data Loaded](images/image6.png)
